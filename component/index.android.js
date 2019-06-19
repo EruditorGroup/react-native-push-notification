@@ -11,6 +11,7 @@ var _notifHandlers = new Map();
 var DEVICE_NOTIF_EVENT = 'remoteNotificationReceived';
 var NOTIF_REGISTER_EVENT = 'remoteNotificationsRegistered';
 var REMOTE_FETCH_EVENT = 'remoteFetch';
+var NOTIF_ERROR_EVENT = 'remoteNotificationsError';
 
 var NotificationsComponent = function() {
 
@@ -94,7 +95,16 @@ NotificationsComponent.prototype.addEventListener = function(type: string, handl
 				handler(notificationData);
 			}
 		);
-	}
+	} else if (type === 'errorNotification') {
+	listener = DeviceEventEmitter.addListener(
+		NOTIF_ERROR_EVENT,
+		function(notifData) {
+			var error = new Error(notifData.error);
+			error.code = notifData.tag;
+			handler(error);
+		}
+	);
+}
 
 	_notifHandlers.set(type, listener);
 };

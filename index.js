@@ -83,6 +83,7 @@ Notifications.configure = function(options: Object) {
 		this.callNative( 'addEventListener', [ 'register', this._onRegister ] );
 		this.callNative( 'addEventListener', [ 'notification', this._onNotification ] );
 		this.callNative( 'addEventListener', [ 'localNotification', this._onNotification ] );
+		this.callNative( 'addEventListener', [ 'errorNotification', this._onErrorNotification ] );
 		Platform.OS === 'android' ? this.callNative( 'addEventListener', [ 'remoteFetch', this._onRemoteFetch ] ) : null
 
 		this.isLoaded = true;
@@ -246,6 +247,12 @@ Notifications._onNotification = function(data, isFromBackground = null) {
 		}
 	}
 };
+
+Notifications._onErrorNotification = function(error) {
+	if (this.onError) {
+		this.onError(error);
+	}
+}
 
 /* onResultPermissionResult */
 Notifications._onPermissionResult = function() {
