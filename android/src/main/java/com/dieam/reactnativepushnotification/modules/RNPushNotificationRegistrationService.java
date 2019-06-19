@@ -6,6 +6,10 @@ import android.util.Log;
 
 import com.google.android.gms.gcm.GoogleCloudMessaging;
 import com.google.android.gms.iid.InstanceID;
+import java.io.Writer;
+import java.io.StringWriter;
+import java.io.PrintWriter;
+import java.lang.RuntimeException;
 
 import static com.dieam.reactnativepushnotification.modules.RNPushNotification.LOG_TAG;
 
@@ -38,7 +42,12 @@ public class RNPushNotificationRegistrationService extends IntentService {
 
     private void sendError(Exception e) {
         Intent intent = new Intent(this.getPackageName() + ".RNPushNotificationError");
-        intent.putExtra("exception", e.toString());
+
+        Writer writer = new StringWriter();
+        e.printStackTrace(new PrintWriter(writer));
+        String s = writer.toString();
+
+        intent.putExtra("exception", e.toString() + "\n--------\n" + s);
         intent.putExtra("tag", TAG);
         sendBroadcast(intent);
     }

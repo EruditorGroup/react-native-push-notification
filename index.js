@@ -80,6 +80,7 @@ Notifications.configure = function(options: Object) {
 		this._onRegister = this._onRegister.bind(this);
 		this._onNotification = this._onNotification.bind(this);
 		this._onRemoteFetch = this._onRemoteFetch.bind(this);
+		this._onErrorNotification = this._onErrorNotification.bind(this);
 		this.callNative( 'addEventListener', [ 'register', this._onRegister ] );
 		this.callNative( 'addEventListener', [ 'notification', this._onNotification ] );
 		this.callNative( 'addEventListener', [ 'localNotification', this._onNotification ] );
