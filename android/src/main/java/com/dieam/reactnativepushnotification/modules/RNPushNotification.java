@@ -9,7 +9,8 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Bundle;
 import android.support.v4.app.NotificationManagerCompat;
-import android.support.v4.content.LocalBroadcastManager;
+
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import com.dieam.reactnativepushnotification.helpers.ApplicationBadgeHelper;
 import com.dieam.reactnativepushnotification.helpers.RNPushNotificationDisplayedCallback;
