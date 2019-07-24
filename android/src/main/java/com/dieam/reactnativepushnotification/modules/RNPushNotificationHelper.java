@@ -284,8 +284,7 @@ public class RNPushNotificationHelper {
                 if (soundName != null) {
                     if (!"default".equalsIgnoreCase(soundName)) {
 
-                        // sound name can be full filename, or just the resource name.
-                        // So the strings 'my_sound.mp3' AND 'my_sound' are accepted
+                        // sound name can be full filename, or just the resource name.// So the strings 'my_sound.mp3' AND 'my_sound' are accepted
                         // The reason is to make the iOS and android javascript interfaces compatible
 
                         int resId;

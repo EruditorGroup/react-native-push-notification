@@ -1,6 +1,6 @@
 package com.dieam.reactnativepushnotification;
 
-import com.dieam.reactnativepushnotification.helpers.RemotePushNotificationHandlerEventListener;
+import com.dieam.reactnativepushnotification.helpers.RNPushNotificationDisplayedCallback;
 import com.dieam.reactnativepushnotification.modules.RNPushNotification;
 import com.facebook.react.ReactPackage;
 import com.facebook.react.bridge.JavaScriptModule;
@@ -13,9 +13,9 @@ import java.util.List;
 
 public class ReactNativePushNotificationPackage implements ReactPackage {
 
-    private RemotePushNotificationHandlerEventListener remotePushNotificationHandlerEventListener;
+    private RNPushNotificationDisplayedCallback remotePushNotificationHandlerEventListener;
 
-    public ReactNativePushNotificationPackage(RemotePushNotificationHandlerEventListener remotePushNotificationHandlerEventListener) {
+    public ReactNativePushNotificationPackage(RNPushNotificationDisplayedCallback remotePushNotificationHandlerEventListener) {
         this.remotePushNotificationHandlerEventListener = remotePushNotificationHandlerEventListener;
     }
 
