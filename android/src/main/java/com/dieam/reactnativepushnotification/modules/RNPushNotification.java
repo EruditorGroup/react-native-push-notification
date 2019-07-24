@@ -9,6 +9,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Bundle;
 import android.support.v4.app.NotificationManagerCompat;
+import android.support.v4.content.LocalBroadcastManager;
 
 import com.dieam.reactnativepushnotification.helpers.ApplicationBadgeHelper;
 import com.dieam.reactnativepushnotification.helpers.RNPushNotificationDisplayedCallback;
@@ -39,7 +40,7 @@ public class RNPushNotification extends ReactContextBaseJavaModule implements Ac
     private RNPushNotificationDisplayedCallback mRNPushNotificationDisplayedCallback;
 
     public RNPushNotification(ReactApplicationContext reactContext,
-                              RNPushNotificationDisplayedCallback remotePushNotificationHandlerEventListener) {
+                              RNPushNotificationDisplayedCallback mRNPushNotificationDisplayedCallback) {
         super(reactContext);
 
         reactContext.addActivityEventListener(this);
@@ -52,7 +53,7 @@ public class RNPushNotification extends ReactContextBaseJavaModule implements Ac
         mJsDelivery = new RNPushNotificationJsDelivery(reactContext);
 
         this.mRNPushNotificationDisplayedCallback =
-                remotePushNotificationHandlerEventListener;
+                mRNPushNotificationDisplayedCallback;
 
         registerNotificationBroadcastListeners();
     }
@@ -127,12 +128,14 @@ public class RNPushNotification extends ReactContextBaseJavaModule implements Ac
                 new IntentFilter(getReactApplicationContext()
                         .getPackageName() + INTENT_TAG_LISTENER);
 
-        getReactApplicationContext().registerReceiver(new BroadcastReceiver() {
-            @Override
-            public void onReceive(Context context, Intent intent) {
-                mRNPushNotificationDisplayedCallback.onPushNotificationDisplayed(context, intent);
-            }
-        }, listenerIntentFilter);
+        LocalBroadcastManager
+                .getInstance(getReactApplicationContext())
+                .registerReceiver(new BroadcastReceiver() {
+                    @Override
+                    public void onReceive(Context context, Intent intent) {
+                        mRNPushNotificationDisplayedCallback.onPushNotificationDisplayed(context, intent);
+                    }
+                }, listenerIntentFilter);
     }
 
     private void sendError(String tag, String error) {

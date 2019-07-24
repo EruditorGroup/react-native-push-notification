@@ -13,16 +13,16 @@ import java.util.List;
 
 public class ReactNativePushNotificationPackage implements ReactPackage {
 
-    private RNPushNotificationDisplayedCallback remotePushNotificationHandlerEventListener;
+    private RNPushNotificationDisplayedCallback mRNPushNotificationDisplayedCallback;
 
-    public ReactNativePushNotificationPackage(RNPushNotificationDisplayedCallback remotePushNotificationHandlerEventListener) {
-        this.remotePushNotificationHandlerEventListener = remotePushNotificationHandlerEventListener;
+    public ReactNativePushNotificationPackage(RNPushNotificationDisplayedCallback mRNPushNotificationDisplayedCallback) {
+        this.mRNPushNotificationDisplayedCallback = mRNPushNotificationDisplayedCallback;
     }
 
     @Override
     public List<NativeModule> createNativeModules(
             ReactApplicationContext reactContext) {
-        return Collections.<NativeModule>singletonList(new RNPushNotification(reactContext, remotePushNotificationHandlerEventListener));
+        return Collections.<NativeModule>singletonList(new RNPushNotification(reactContext, mRNPushNotificationDisplayedCallback));
     }
 
     public List<Class<? extends JavaScriptModule>> createJSModules() {
