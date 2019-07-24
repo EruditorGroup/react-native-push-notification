@@ -36,6 +36,7 @@ import javax.annotation.Nullable;
 
 public class RNPushNotification extends ReactContextBaseJavaModule implements ActivityEventListener {
     public static final String LOG_TAG = "RNPushNotification";// all logging should use this tag
+    public static final String INTENT_TAG_LISTENER = ".RNPushNotificationListener";
 
     private RNPushNotificationHelper mRNPushNotificationHelper;
     private final Random mRandomNumberGenerator = new Random(System.currentTimeMillis());
@@ -119,7 +120,7 @@ public class RNPushNotification extends ReactContextBaseJavaModule implements Ac
 
         IntentFilter listenerIntentFilter =
                 new IntentFilter(getReactApplicationContext()
-                        .getPackageName() + ".RNPushNotificationListener");
+                        .getPackageName() + INTENT_TAG_LISTENER);
 
         getReactApplicationContext().registerReceiver(new BroadcastReceiver() {
             @Override

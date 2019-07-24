@@ -29,6 +29,7 @@ import org.json.JSONException;
 
 import java.util.Arrays;
 
+import static com.dieam.reactnativepushnotification.modules.RNPushNotification.INTENT_TAG_LISTENER;
 import static com.dieam.reactnativepushnotification.modules.RNPushNotification.LOG_TAG;
 import static com.dieam.reactnativepushnotification.modules.RNPushNotificationAttributes.fromJson;
 
@@ -394,7 +395,7 @@ public class RNPushNotificationHelper {
             }
 
             // Трекать здесь
-            Intent listenerIntent = new Intent(context.getPackageName() + ".RNNotificationListener");
+            Intent listenerIntent = new Intent(context.getPackageName() + INTENT_TAG_LISTENER);
             listenerIntent.putExtras(bundle);
             context.sendBroadcast(listenerIntent);
 
