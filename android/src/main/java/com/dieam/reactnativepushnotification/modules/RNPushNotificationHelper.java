@@ -393,7 +393,7 @@ public class RNPushNotificationHelper {
                 notificationManager.notify(notificationID, info);
             }
 
-            // Трекать здесь
+            // Вызов коллбека показа пуша
             Intent listenerIntent = new Intent(context.getPackageName() + INTENT_TAG_LISTENER);
             listenerIntent.putExtras(bundle);
             context.sendBroadcast(listenerIntent);
