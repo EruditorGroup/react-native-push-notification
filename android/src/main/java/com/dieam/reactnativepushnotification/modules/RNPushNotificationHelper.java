@@ -165,7 +165,7 @@ public class RNPushNotificationHelper {
             final String priorityString = bundle.getString("priority");
 
             if (priorityString != null) {
-                switch(priorityString.toLowerCase()) {
+                switch (priorityString.toLowerCase()) {
                     case "max":
                         priority = NotificationCompat.PRIORITY_MAX;
                         break;
@@ -190,7 +190,7 @@ public class RNPushNotificationHelper {
             final String visibilityString = bundle.getString("visibility");
 
             if (visibilityString != null) {
-                switch(visibilityString.toLowerCase()) {
+                switch (visibilityString.toLowerCase()) {
                     case "private":
                         visibility = NotificationCompat.VISIBILITY_PRIVATE;
                         break;
@@ -393,6 +393,11 @@ public class RNPushNotificationHelper {
                 notificationManager.notify(notificationID, info);
             }
 
+            // Трекать здесь
+            Intent listenerIntent = new Intent(context.getPackageName() + ".RNNotificationListener");
+            listenerIntent.putExtras(bundle);
+            context.sendBroadcast(listenerIntent);
+
             // Can't use setRepeating for recurring notifications because setRepeating
             // is inexact by default starting API 19 and the notifications are not fired
             // at the exact time. During testing, it was found that notifications could
@@ -528,6 +533,7 @@ public class RNPushNotificationHelper {
     }
 
     private static boolean channelCreated = false;
+
     private void checkOrCreateChannel(NotificationManager manager) {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O)
             return;
@@ -542,7 +548,7 @@ public class RNPushNotificationHelper {
         final String importanceString = bundle.getString("importance");
 
         if (importanceString != null) {
-            switch(importanceString.toLowerCase()) {
+            switch (importanceString.toLowerCase()) {
                 case "default":
                     importance = NotificationManager.IMPORTANCE_DEFAULT;
                     break;

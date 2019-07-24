@@ -11,6 +11,7 @@ import android.os.Bundle;
 import android.support.v4.app.NotificationManagerCompat;
 
 import com.dieam.reactnativepushnotification.helpers.ApplicationBadgeHelper;
+import com.dieam.reactnativepushnotification.helpers.RemotePushNotificationHandlerEventListenerProvider;
 import com.facebook.react.bridge.ActivityEventListener;
 import com.facebook.react.bridge.Arguments;
 import com.facebook.react.bridge.Promise;
@@ -29,6 +30,9 @@ import java.util.Random;
 import android.util.Log;
 
 import com.google.firebase.messaging.FirebaseMessaging;
+import com.dieam.reactnativepushnotification.helpers.RemotePushNotificationHandlerEventListener;
+
+import javax.annotation.Nullable;
 
 public class RNPushNotification extends ReactContextBaseJavaModule implements ActivityEventListener {
     public static final String LOG_TAG = "RNPushNotification";// all logging should use this tag
@@ -36,8 +40,10 @@ public class RNPushNotification extends ReactContextBaseJavaModule implements Ac
     private RNPushNotificationHelper mRNPushNotificationHelper;
     private final Random mRandomNumberGenerator = new Random(System.currentTimeMillis());
     private RNPushNotificationJsDelivery mJsDelivery;
+    private RemotePushNotificationHandlerEventListener remotePushNotificationHandlerEventListener;
 
-    public RNPushNotification(ReactApplicationContext reactContext) {
+    public RNPushNotification(ReactApplicationContext reactContext,
+                              RemotePushNotificationHandlerEventListener remotePushNotificationHandlerEventListener) {
         super(reactContext);
 
         reactContext.addActivityEventListener(this);
@@ -48,6 +54,9 @@ public class RNPushNotification extends ReactContextBaseJavaModule implements Ac
         mRNPushNotificationHelper = new RNPushNotificationHelper(applicationContext);
         // This is used to delivery callbacks to JS
         mJsDelivery = new RNPushNotificationJsDelivery(reactContext);
+
+        this.remotePushNotificationHandlerEventListener =
+                remotePushNotificationHandlerEventListener;
 
         registerNotificationsRegistration();
     }
@@ -73,6 +82,7 @@ public class RNPushNotification extends ReactContextBaseJavaModule implements Ac
         }
         return bundle;
     }
+
     public void onNewIntent(Intent intent) {
         Bundle bundle = this.getBundleFromIntent(intent);
         if (bundle != null) {
@@ -106,6 +116,17 @@ public class RNPushNotification extends ReactContextBaseJavaModule implements Ac
                 sendError(tag, exception);
             }
         }, errorIntentFilter);
+
+        IntentFilter listenerIntentFilter =
+                new IntentFilter(getReactApplicationContext()
+                        .getPackageName() + ".RNPushNotificationListener");
+
+        getReactApplicationContext().registerReceiver(new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                remotePushNotificationHandlerEventListener.onPushNotificationHandled(context, intent);
+            }
+        }, listenerIntentFilter);
     }
 
     private void sendError(String tag, String error) {
