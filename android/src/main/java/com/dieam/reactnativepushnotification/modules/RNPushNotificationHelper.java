@@ -395,10 +395,10 @@ public class RNPushNotificationHelper {
                 notificationManager.notify(notificationID, info);
             }
 
-            // Вызов коллбека показа пуша
-            Intent listenerIntent = new Intent(context.getPackageName() + INTENT_TAG_LISTENER);
-            listenerIntent.putExtras(bundle);
-            LocalBroadcastManager.getInstance(context).sendBroadcast(listenerIntent);
+            // Indirectly invoke the 'push displayed' callback by sending a broadcast
+            Intent pushDisplayedIntent = new Intent(context.getPackageName() + INTENT_TAG_PUSH_DISPLAYED_CALLBACK);
+            pushDisplayedIntent.putExtras(bundle);
+            LocalBroadcastManager.getInstance(context).sendBroadcast(pushDisplayedIntent);
 
             // Can't use setRepeating for recurring notifications because setRepeating
             // is inexact by default starting API 19 and the notifications are not fired

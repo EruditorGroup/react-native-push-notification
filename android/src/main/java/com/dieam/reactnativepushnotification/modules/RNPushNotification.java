@@ -33,7 +33,7 @@ import java.util.Random;
 public class RNPushNotification extends ReactContextBaseJavaModule implements ActivityEventListener {
     public static final String LOG_TAG = "RNPushNotification";// all logging should use this tag
 
-    static final String INTENT_TAG_LISTENER = ".RNPushNotificationListener";
+    static final String INTENT_TAG_PUSH_DISPLAYED_CALLBACK = ".RNPushNotificationListener";
 
     private RNPushNotificationHelper mRNPushNotificationHelper;
     private final Random mRandomNumberGenerator = new Random(System.currentTimeMillis());
