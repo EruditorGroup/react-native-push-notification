@@ -127,7 +127,7 @@ public class RNPushNotification extends ReactContextBaseJavaModule implements Ac
     private void registerNotificationDisplayedListener() {
         IntentFilter listenerIntentFilter =
                 new IntentFilter(getReactApplicationContext()
-                        .getPackageName() + INTENT_TAG_LISTENER);
+                        .getPackageName() + INTENT_TAG_PUSH_DISPLAYED_CALLBACK);
 
         LocalBroadcastManager
                 .getInstance(getReactApplicationContext())
