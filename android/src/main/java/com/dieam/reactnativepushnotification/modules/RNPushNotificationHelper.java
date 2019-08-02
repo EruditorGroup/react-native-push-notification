@@ -31,7 +31,7 @@ import org.json.JSONException;
 
 import java.util.Arrays;
 
-import static com.dieam.reactnativepushnotification.modules.RNPushNotification.INTENT_TAG_LISTENER;
+import static com.dieam.reactnativepushnotification.modules.RNPushNotification.INTENT_TAG_PUSH_DISPLAYED_CALLBACK;
 import static com.dieam.reactnativepushnotification.modules.RNPushNotification.LOG_TAG;
 import static com.dieam.reactnativepushnotification.modules.RNPushNotificationAttributes.fromJson;
 
