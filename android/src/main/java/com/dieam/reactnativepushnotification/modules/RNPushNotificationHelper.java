@@ -22,6 +22,8 @@ import android.os.Bundle;
 import android.support.v4.app.NotificationCompat;
 import android.util.Log;
 
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
+
 import com.facebook.react.bridge.ReadableMap;
 
 import org.json.JSONArray;
@@ -29,6 +31,7 @@ import org.json.JSONException;
 
 import java.util.Arrays;
 
+import static com.dieam.reactnativepushnotification.modules.RNPushNotification.INTENT_TAG_PUSH_DISPLAYED_CALLBACK;
 import static com.dieam.reactnativepushnotification.modules.RNPushNotification.LOG_TAG;
 import static com.dieam.reactnativepushnotification.modules.RNPushNotificationAttributes.fromJson;
 
@@ -165,7 +168,7 @@ public class RNPushNotificationHelper {
             final String priorityString = bundle.getString("priority");
 
             if (priorityString != null) {
-                switch(priorityString.toLowerCase()) {
+                switch (priorityString.toLowerCase()) {
                     case "max":
                         priority = NotificationCompat.PRIORITY_MAX;
                         break;
@@ -190,7 +193,7 @@ public class RNPushNotificationHelper {
             final String visibilityString = bundle.getString("visibility");
 
             if (visibilityString != null) {
-                switch(visibilityString.toLowerCase()) {
+                switch (visibilityString.toLowerCase()) {
                     case "private":
                         visibility = NotificationCompat.VISIBILITY_PRIVATE;
                         break;
@@ -283,8 +286,7 @@ public class RNPushNotificationHelper {
                 if (soundName != null) {
                     if (!"default".equalsIgnoreCase(soundName)) {
 
-                        // sound name can be full filename, or just the resource name.
-                        // So the strings 'my_sound.mp3' AND 'my_sound' are accepted
+                        // sound name can be full filename, or just the resource name.// So the strings 'my_sound.mp3' AND 'my_sound' are accepted
                         // The reason is to make the iOS and android javascript interfaces compatible
 
                         int resId;
@@ -392,6 +394,11 @@ public class RNPushNotificationHelper {
             } else {
                 notificationManager.notify(notificationID, info);
             }
+
+            // Indirectly invoke the 'push displayed' callback by sending a broadcast
+            Intent pushDisplayedIntent = new Intent(context.getPackageName() + INTENT_TAG_PUSH_DISPLAYED_CALLBACK);
+            pushDisplayedIntent.putExtras(bundle);
+            LocalBroadcastManager.getInstance(context).sendBroadcast(pushDisplayedIntent);
 
             // Can't use setRepeating for recurring notifications because setRepeating
             // is inexact by default starting API 19 and the notifications are not fired
@@ -528,6 +535,7 @@ public class RNPushNotificationHelper {
     }
 
     private static boolean channelCreated = false;
+
     private void checkOrCreateChannel(NotificationManager manager) {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O)
             return;
@@ -542,7 +550,7 @@ public class RNPushNotificationHelper {
         final String importanceString = bundle.getString("importance");
 
         if (importanceString != null) {
-            switch(importanceString.toLowerCase()) {
+            switch (importanceString.toLowerCase()) {
                 case "default":
                     importance = NotificationManager.IMPORTANCE_DEFAULT;
                     break;

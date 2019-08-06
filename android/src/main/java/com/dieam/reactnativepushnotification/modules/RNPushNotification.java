@@ -10,7 +10,10 @@ import android.content.IntentFilter;
 import android.os.Bundle;
 import android.support.v4.app.NotificationManagerCompat;
 
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
+
 import com.dieam.reactnativepushnotification.helpers.ApplicationBadgeHelper;
+import com.dieam.reactnativepushnotification.helpers.RNPushNotificationDisplayedCallback;
 import com.facebook.react.bridge.ActivityEventListener;
 import com.facebook.react.bridge.Arguments;
 import com.facebook.react.bridge.Promise;
@@ -21,23 +24,24 @@ import com.facebook.react.bridge.ReactMethod;
 import com.facebook.react.bridge.ReadableArray;
 import com.facebook.react.bridge.ReadableMap;
 import com.facebook.react.bridge.WritableMap;
+import com.google.firebase.messaging.FirebaseMessaging;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
 
-import android.util.Log;
-
-import com.google.firebase.messaging.FirebaseMessaging;
-
 public class RNPushNotification extends ReactContextBaseJavaModule implements ActivityEventListener {
     public static final String LOG_TAG = "RNPushNotification";// all logging should use this tag
+
+    static final String INTENT_TAG_PUSH_DISPLAYED_CALLBACK = ".RNPushNotificationListener";
 
     private RNPushNotificationHelper mRNPushNotificationHelper;
     private final Random mRandomNumberGenerator = new Random(System.currentTimeMillis());
     private RNPushNotificationJsDelivery mJsDelivery;
+    private RNPushNotificationDisplayedCallback mRNPushNotificationDisplayedCallback;
 
-    public RNPushNotification(ReactApplicationContext reactContext) {
+    public RNPushNotification(ReactApplicationContext reactContext,
+                              RNPushNotificationDisplayedCallback mRNPushNotificationDisplayedCallback) {
         super(reactContext);
 
         reactContext.addActivityEventListener(this);
@@ -49,7 +53,10 @@ public class RNPushNotification extends ReactContextBaseJavaModule implements Ac
         // This is used to delivery callbacks to JS
         mJsDelivery = new RNPushNotificationJsDelivery(reactContext);
 
-        registerNotificationsRegistration();
+        this.mRNPushNotificationDisplayedCallback =
+                mRNPushNotificationDisplayedCallback;
+
+        registerNotificationBroadcastListeners();
     }
 
     @Override
@@ -73,6 +80,7 @@ public class RNPushNotification extends ReactContextBaseJavaModule implements Ac
         }
         return bundle;
     }
+
     public void onNewIntent(Intent intent) {
         Bundle bundle = this.getBundleFromIntent(intent);
         if (bundle != null) {
@@ -82,7 +90,13 @@ public class RNPushNotification extends ReactContextBaseJavaModule implements Ac
         }
     }
 
-    private void registerNotificationsRegistration() {
+    private void registerNotificationBroadcastListeners() {
+        registerNotificationRegistrationListener();
+        registerNotificationRegistrationErrorListener();
+        registerNotificationDisplayedListener();
+    }
+
+    private void registerNotificationRegistrationListener() {
         IntentFilter intentFilter = new IntentFilter(getReactApplicationContext().getPackageName() + ".RNPushNotificationRegisteredToken");
 
         getReactApplicationContext().registerReceiver(new BroadcastReceiver() {
@@ -95,7 +109,9 @@ public class RNPushNotification extends ReactContextBaseJavaModule implements Ac
                 mJsDelivery.sendEvent("remoteNotificationsRegistered", params);
             }
         }, intentFilter);
+    }
 
+    private void registerNotificationRegistrationErrorListener() {
         IntentFilter errorIntentFilter = new IntentFilter(getReactApplicationContext().getPackageName() + ".RNPushNotificationError");
 
         getReactApplicationContext().registerReceiver(new BroadcastReceiver() {
@@ -106,6 +122,21 @@ public class RNPushNotification extends ReactContextBaseJavaModule implements Ac
                 sendError(tag, exception);
             }
         }, errorIntentFilter);
+    }
+
+    private void registerNotificationDisplayedListener() {
+        IntentFilter listenerIntentFilter =
+                new IntentFilter(getReactApplicationContext()
+                        .getPackageName() + INTENT_TAG_PUSH_DISPLAYED_CALLBACK);
+
+        LocalBroadcastManager
+                .getInstance(getReactApplicationContext())
+                .registerReceiver(new BroadcastReceiver() {
+                    @Override
+                    public void onReceive(Context context, Intent intent) {
+                        mRNPushNotificationDisplayedCallback.onPushNotificationDisplayed(context, intent);
+                    }
+                }, listenerIntentFilter);
     }
 
     private void sendError(String tag, String error) {
