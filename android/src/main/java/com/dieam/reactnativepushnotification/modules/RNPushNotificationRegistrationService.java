@@ -2,19 +2,14 @@ package com.dieam.reactnativepushnotification.modules;
 
 import android.app.IntentService;
 import android.content.Intent;
-import android.util.Log;
 
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.Task;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.iid.FirebaseInstanceId;
 import com.google.firebase.iid.InstanceIdResult;
+
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.io.Writer;
-
-import androidx.annotation.NonNull;
-
-import static com.dieam.reactnativepushnotification.modules.RNPushNotification.LOG_TAG;
 
 public class RNPushNotificationRegistrationService extends IntentService {
 
@@ -27,16 +22,12 @@ public class RNPushNotificationRegistrationService extends IntentService {
     @Override
     protected void onHandleIntent(Intent intent) {
         try {
-            FirebaseInstanceId.getInstance().getInstanceId().addOnCompleteListener(
-                    new OnCompleteListener<InstanceIdResult>() {
+            FirebaseInstanceId.getInstance().getInstanceId().addOnSuccessListener(
+                    new OnSuccessListener<InstanceIdResult>() {
                         @Override
-                        public void onComplete(@NonNull Task<InstanceIdResult> task) {
-                            if (!task.isSuccessful()) {
-                                sendError(new IllegalStateException("Failed to load fcm token."));
-                            }
-                            final InstanceIdResult result = task.getResult();
+                        public void onSuccess(InstanceIdResult result) {
                             if (result != null) {
-                                final String token = task.getResult().getToken();
+                                final String token = result.getToken();
                                 sendRegistrationToken(token);
                             } else {
                                 sendError(new IllegalStateException("Instance id result is null."));
