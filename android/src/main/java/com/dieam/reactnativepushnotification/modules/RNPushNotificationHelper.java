@@ -16,18 +16,23 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.media.RingtoneManager;
+import android.net.ParseException;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+
 import androidx.core.app.NotificationCompat;
+
 import android.util.Log;
 
+import androidx.core.app.RemoteInput;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import com.facebook.react.bridge.ReadableMap;
 
 import org.json.JSONArray;
 import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.util.Arrays;
 import java.util.Calendar;
@@ -42,6 +47,10 @@ public class RNPushNotificationHelper {
     public static final String PREFERENCES_KEY = "rn_push_notification";
     private static final long DEFAULT_VIBRATION = 300L;
     private static final String NOTIFICATION_CHANNEL_ID = "rn-push-notification-channel-id";
+
+    public static final String EX_NOTIFICATION = "notification";
+    public static final String EX_NOTIFICATION_ID = "notificationId";
+    public static final String EX_NOTIFICATION_INPUT_TEXT = "notificationInputText";
 
     private Context context;
     private RNPushNotificationConfig config;
@@ -353,24 +362,73 @@ public class RNPushNotificationHelper {
                 // Add button for each actions.
                 for (int i = 0; i < actionsArray.length(); i++) {
                     String action;
+                    Uri deeplink = null;
+                    String placeholder;
+                    String actionType;
                     try {
-                        action = actionsArray.getString(i);
+                        final JSONObject actionJson = actionsArray.getJSONObject(i);
+                        action = actionJson.getString("title");
+                        final String deeplinkString = actionJson.optString("deeplink");
+                        if (deeplinkString != null && !deeplinkString.isEmpty()) {
+                            deeplink = Uri.parse(deeplinkString);
+                        }
+                        placeholder = actionJson.optString("inputPlaceholder", "");
+                        actionType = actionJson.getString("type");
                     } catch (JSONException e) {
                         Log.e(LOG_TAG, "Exception while getting action from actionsArray.", e);
                         continue;
+                    } catch (ParseException e) {
+                        Log.e(LOG_TAG, "Exception while parsing deeplink from action.", e);
+                        continue;
                     }
 
-                    Intent actionIntent = new Intent(context, intentClass);
-                    actionIntent.addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
-                    actionIntent.setAction(context.getPackageName() + "." + action);
+                    if (actionType == null) {
+                        continue;
+                    }
 
-                    // Add "action" for later identifying which button gets pressed.
-                    bundle.putString("action", action);
-                    actionIntent.putExtra("notification", bundle);
+                    PendingIntent pendingActionIntent;
 
-                    PendingIntent pendingActionIntent = PendingIntent.getActivity(context, notificationID, actionIntent,
-                            PendingIntent.FLAG_UPDATE_CURRENT);
-                    notification.addAction(icon, action, pendingActionIntent);
+                    if (actionType.equals("deeplink")) {
+                        if (deeplink != null) {
+                            Intent actionIntent = new Intent(Intent.ACTION_VIEW, deeplink);
+                            bundle.putInt(EX_NOTIFICATION_ID, notificationID);
+                            actionIntent.putExtra(EX_NOTIFICATION, bundle);
+                            pendingActionIntent = PendingIntent.getActivity(
+                                    context,
+                                    notificationID,
+                                    actionIntent,
+                                    PendingIntent.FLAG_UPDATE_CURRENT
+                            );
+                            notification.addAction(icon, action, pendingActionIntent);
+                        }
+                    } else {
+                        Intent actionIntent = new Intent(context, RNPushNotificationActionService.class);
+
+                        bundle.putInt(EX_NOTIFICATION_ID, notificationID);
+                        actionIntent.putExtra(EX_NOTIFICATION, bundle);
+                        actionIntent.setAction(actionType);
+                        pendingActionIntent = PendingIntent.getService(
+                                context,
+                                notificationID,
+                                actionIntent,
+                                PendingIntent.FLAG_UPDATE_CURRENT
+                        );
+                        if (actionType.equals("reply")) {
+                            RemoteInput remoteInput = new RemoteInput.Builder(EX_NOTIFICATION_INPUT_TEXT)
+                                    .setLabel(placeholder)
+                                    .build();
+
+                            NotificationCompat.Action replyAction =
+                                    new NotificationCompat
+                                            .Action
+                                            .Builder(0, action, pendingActionIntent)
+                                            .addRemoteInput(remoteInput)
+                                            .build();
+                            notification.addAction(replyAction);
+                        } else {
+                            notification.addAction(icon, action, pendingActionIntent);
+                        }
+                    }
                 }
             }
 

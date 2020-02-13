@@ -2,6 +2,7 @@ package com.dieam.reactnativepushnotification;
 
 import com.dieam.reactnativepushnotification.helpers.RNPushNotificationDisplayedCallback;
 import com.dieam.reactnativepushnotification.modules.RNPushNotification;
+import com.dieam.reactnativepushnotification.modules.RNPushNotificationActionHandler;
 import com.facebook.react.ReactPackage;
 import com.facebook.react.bridge.JavaScriptModule;
 import com.facebook.react.bridge.NativeModule;
@@ -14,9 +15,14 @@ import java.util.List;
 public class ReactNativePushNotificationPackage implements ReactPackage {
 
     private RNPushNotificationDisplayedCallback mRNPushNotificationDisplayedCallback;
+    public static RNPushNotificationActionHandler mPushNotificationActionHandler;
 
-    public ReactNativePushNotificationPackage(RNPushNotificationDisplayedCallback mRNPushNotificationDisplayedCallback) {
-        this.mRNPushNotificationDisplayedCallback = mRNPushNotificationDisplayedCallback;
+    public ReactNativePushNotificationPackage(
+            RNPushNotificationDisplayedCallback pushNotificationDisplayedCallback,
+            RNPushNotificationActionHandler pushNotificationActionHandler
+    ) {
+        this.mRNPushNotificationDisplayedCallback = pushNotificationDisplayedCallback;
+        mPushNotificationActionHandler = pushNotificationActionHandler;
     }
 
     @Override
