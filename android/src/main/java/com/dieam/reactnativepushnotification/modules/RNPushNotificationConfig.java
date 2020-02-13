@@ -109,8 +109,8 @@ class RNPushNotificationConfig {
                     importance = NotificationManager.IMPORTANCE_HIGH;
             }
         }
-        final RNPushNotificationChannelId[] configs = RNPushNotificationChannelId.values();
-        for (final RNPushNotificationChannelId config : configs) {
+        final RNPushNotificationChannelConfig[] configs = RNPushNotificationChannelConfig.values();
+        for (final RNPushNotificationChannelConfig config : configs) {
             NotificationChannel channel = new NotificationChannel(config.getId(), config.getChannelName(), importance);
             final NotificationChannelGroup group = new NotificationChannelGroup(config.getId(), config.getChannelName());
 
