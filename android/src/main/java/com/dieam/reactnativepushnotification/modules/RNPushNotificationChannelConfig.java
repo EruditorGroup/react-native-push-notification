@@ -1,6 +1,6 @@
 package com.dieam.reactnativepushnotification.modules;
 
-enum RNPushNotificationChannelConfig {
+public enum RNPushNotificationChannelConfig {
 
     INVITE("rn-push-notification-channel-invite", "Приглашения", ""),
     CHATS("rn-push-notification-channel-chats", "Сообщения", ""),
