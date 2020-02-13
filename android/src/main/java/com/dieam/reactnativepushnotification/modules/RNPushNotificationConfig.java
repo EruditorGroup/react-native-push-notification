@@ -1,11 +1,16 @@
 package com.dieam.reactnativepushnotification.modules;
 
+import android.app.NotificationChannel;
+import android.app.NotificationChannelGroup;
+import android.app.NotificationManager;
 import android.content.Context;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
-import androidx.core.content.res.ResourcesCompat;
+import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
+
+import androidx.core.content.res.ResourcesCompat;
 
 class RNPushNotificationConfig {
     private static final String KEY_CHANNEL_NAME = "com.dieam.reactnativepushnotification.notification_channel_name";
@@ -27,6 +32,12 @@ class RNPushNotificationConfig {
                 metadata = new Bundle();
             }
         }
+        try {
+            final NotificationManager notificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
+            configChannels(notificationManager);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     public String getChannelName() {
@@ -38,6 +49,7 @@ class RNPushNotificationConfig {
         // Default
         return "rn-push-notification-channel";
     }
+
     public String getChannelDescription() {
         try {
             return metadata.getString(KEY_CHANNEL_DESCRIPTION);
@@ -47,6 +59,7 @@ class RNPushNotificationConfig {
         // Default
         return "";
     }
+
     public int getNotificationColor() {
         try {
             int resourceId = metadata.getInt(KEY_NOTIFICATION_COLOR);
@@ -56,5 +69,57 @@ class RNPushNotificationConfig {
         }
         // Default
         return -1;
+    }
+
+    private void configChannels(NotificationManager manager) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O)
+            return;
+        if (manager == null)
+            return;
+
+        Bundle bundle = new Bundle();
+
+        int importance = NotificationManager.IMPORTANCE_HIGH;
+        final String importanceString = bundle.getString("importance");
+
+        if (importanceString != null) {
+            switch (importanceString.toLowerCase()) {
+                case "default":
+                    importance = NotificationManager.IMPORTANCE_DEFAULT;
+                    break;
+                case "max":
+                    importance = NotificationManager.IMPORTANCE_MAX;
+                    break;
+                case "high":
+                    importance = NotificationManager.IMPORTANCE_HIGH;
+                    break;
+                case "low":
+                    importance = NotificationManager.IMPORTANCE_LOW;
+                    break;
+                case "min":
+                    importance = NotificationManager.IMPORTANCE_MIN;
+                    break;
+                case "none":
+                    importance = NotificationManager.IMPORTANCE_NONE;
+                    break;
+                case "unspecified":
+                    importance = NotificationManager.IMPORTANCE_UNSPECIFIED;
+                    break;
+                default:
+                    importance = NotificationManager.IMPORTANCE_HIGH;
+            }
+        }
+        final RNPushNotificationChannelId[] configs = RNPushNotificationChannelId.values();
+        for (final RNPushNotificationChannelId config : configs) {
+            NotificationChannel channel = new NotificationChannel(config.getId(), config.getChannelName(), importance);
+            final NotificationChannelGroup group = new NotificationChannelGroup(config.getId(), config.getChannelName());
+
+            channel.setDescription(config.getChannelDescription());
+            channel.enableLights(true);
+            channel.enableVibration(true);
+
+            manager.createNotificationChannelGroup(group);
+            manager.createNotificationChannel(channel);
+        }
     }
 }
