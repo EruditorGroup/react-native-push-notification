@@ -4,7 +4,6 @@ package com.dieam.reactnativepushnotification.modules;
 import android.app.AlarmManager;
 import android.app.Application;
 import android.app.Notification;
-import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
@@ -20,11 +19,12 @@ import android.net.ParseException;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
-
-import androidx.core.app.NotificationCompat;
+import android.service.notification.StatusBarNotification;
 
 import android.util.Log;
 
+import androidx.core.app.NotificationCompat;
+import androidx.core.app.Person;
 import androidx.core.app.RemoteInput;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
@@ -38,6 +38,8 @@ import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
+import java.util.HashMap;
+import java.util.Map;
 
 import static com.dieam.reactnativepushnotification.modules.RNPushNotification.INTENT_TAG_PUSH_DISPLAYED_CALLBACK;
 import static com.dieam.reactnativepushnotification.modules.RNPushNotification.LOG_TAG;
@@ -46,7 +48,6 @@ import static com.dieam.reactnativepushnotification.modules.RNPushNotificationAt
 public class RNPushNotificationHelper {
     public static final String PREFERENCES_KEY = "rn_push_notification";
     private static final long DEFAULT_VIBRATION = 300L;
-    private static final String NOTIFICATION_CHANNEL_ID = "rn-push-notification-channel-id";
 
     public static final String EX_NOTIFICATION = "notification";
     public static final String EX_NOTIFICATION_ID = "notificationId";
@@ -147,6 +148,8 @@ public class RNPushNotificationHelper {
         }
     }
 
+    private static Map<String, Boolean> isGroupSummary = new HashMap<>();
+
     public void sendToNotificationCentre(Bundle bundle) {
         try {
             Class intentClass = getMainActivityClass();
@@ -161,7 +164,22 @@ public class RNPushNotificationHelper {
                 return;
             }
 
-            String notificationIdString = bundle.getString("id");
+            final String pushType = bundle.getString("push_type");
+            final RNPushNotificationChannelConfig channelConfig;
+            switch (pushType) {
+                case "invite_push":
+                    channelConfig = RNPushNotificationChannelConfig.INVITE;
+                    break;
+                case "chats_push":
+                    channelConfig = RNPushNotificationChannelConfig.CHATS;
+                    break;
+                default:
+                    channelConfig = RNPushNotificationChannelConfig.OTHER;
+            }
+
+            String chatId = bundle.getString("chat_id");
+            String id = bundle.getString("id");
+            String notificationIdString = chatId != null && channelConfig == RNPushNotificationChannelConfig.CHATS ? chatId : id;
             if (notificationIdString == null) {
                 Log.e(LOG_TAG, "No notification ID specified for the notification");
                 return;
@@ -219,20 +237,49 @@ public class RNPushNotificationHelper {
                         visibility = NotificationCompat.VISIBILITY_PRIVATE;
                 }
             }
+            final String message = bundle.getString("message");
+            NotificationManager notificationManager = notificationManager();
 
-            NotificationCompat.Builder notification = new NotificationCompat.Builder(context, NOTIFICATION_CHANNEL_ID)
-                    .setContentTitle(title)
+            NotificationCompat.Builder notification = new NotificationCompat.Builder(context, channelConfig.getId())
                     .setTicker(bundle.getString("ticker"))
                     .setVisibility(visibility)
                     .setPriority(priority)
-                    .setAutoCancel(bundle.getBoolean("autoCancel", true));
-
-            String group = bundle.getString("group");
-            if (group != null) {
-                notification.setGroup(group);
+                    .setGroup(channelConfig.getId())
+                    .setGroupAlertBehavior(NotificationCompat.GROUP_ALERT_ALL)
+                    .setAutoCancel(bundle.getBoolean("autoCancel", true))
+                    .setContentTitle(title);
+            if (channelConfig == RNPushNotificationChannelConfig.CHATS) {
+                if (Build.VERSION.SDK_INT > Build.VERSION_CODES.LOLLIPOP_MR1) {
+                    final StatusBarNotification[] notifications = notificationManager.getActiveNotifications();
+                    NotificationCompat.MessagingStyle style = null;
+                    for (StatusBarNotification not : notifications) {
+                        if (!String.valueOf(not.getId()).equals(chatId)) continue;
+                        final Notification tempNotification = not.getNotification();
+                        style = NotificationCompat.MessagingStyle.extractMessagingStyleFromNotification(tempNotification);
+                    }
+                    if (style == null) {
+                        style = new NotificationCompat.MessagingStyle(new Person.Builder().setName(title).build());
+                    }
+                    style.setConversationTitle(title);
+                    NotificationCompat.MessagingStyle.Message notificationMessage = new
+                            NotificationCompat.MessagingStyle.Message(
+                            message,
+                            System.currentTimeMillis(),
+                            (Person) null
+                    );
+                    style.addMessage(notificationMessage);
+                    notification.setStyle(style);
+                } else {
+                    notification.setContentText(message);
+                }
+            } else {
+                final Boolean isGroupAlreadyBind = isGroupSummary.get(channelConfig.getId());
+                if (isGroupAlreadyBind == null) {
+                    notification.setGroupSummary(true);
+                    isGroupSummary.put(channelConfig.getId(), true);
+                }
+                notification.setContentText(message);
             }
-
-            notification.setContentText(bundle.getString("message"));
 
             String largeIcon = bundle.getString("largeIcon");
 
@@ -279,13 +326,6 @@ public class RNPushNotificationHelper {
             }
 
             notification.setSmallIcon(smallIconResId);
-            String bigText = bundle.getString("bigText");
-
-            if (bigText == null) {
-                bigText = bundle.getString("message");
-            }
-
-            notification.setStyle(new NotificationCompat.BigTextStyle().bigText(bigText));
 
             Intent intent = new Intent(context, intentClass);
             intent.addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
@@ -335,9 +375,6 @@ public class RNPushNotificationHelper {
 
             PendingIntent pendingIntent = PendingIntent.getActivity(context, notificationID, intent,
                     PendingIntent.FLAG_UPDATE_CURRENT);
-
-            NotificationManager notificationManager = notificationManager();
-            checkOrCreateChannel(notificationManager);
 
             notification.setContentIntent(pendingIntent);
 
@@ -613,58 +650,5 @@ public class RNPushNotificationHelper {
         } else {
             editor.apply();
         }
-    }
-
-    private static boolean channelCreated = false;
-
-    private void checkOrCreateChannel(NotificationManager manager) {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O)
-            return;
-        if (channelCreated)
-            return;
-        if (manager == null)
-            return;
-
-        Bundle bundle = new Bundle();
-
-        int importance = NotificationManager.IMPORTANCE_HIGH;
-        final String importanceString = bundle.getString("importance");
-
-        if (importanceString != null) {
-            switch (importanceString.toLowerCase()) {
-                case "default":
-                    importance = NotificationManager.IMPORTANCE_DEFAULT;
-                    break;
-                case "max":
-                    importance = NotificationManager.IMPORTANCE_MAX;
-                    break;
-                case "high":
-                    importance = NotificationManager.IMPORTANCE_HIGH;
-                    break;
-                case "low":
-                    importance = NotificationManager.IMPORTANCE_LOW;
-                    break;
-                case "min":
-                    importance = NotificationManager.IMPORTANCE_MIN;
-                    break;
-                case "none":
-                    importance = NotificationManager.IMPORTANCE_NONE;
-                    break;
-                case "unspecified":
-                    importance = NotificationManager.IMPORTANCE_UNSPECIFIED;
-                    break;
-                default:
-                    importance = NotificationManager.IMPORTANCE_HIGH;
-            }
-        }
-
-        NotificationChannel channel = new NotificationChannel(NOTIFICATION_CHANNEL_ID, this.config.getChannelName() != null ? this.config.getChannelName() : "rn-push-notification-channel", importance);
-
-        channel.setDescription(this.config.getChannelDescription());
-        channel.enableLights(true);
-        channel.enableVibration(true);
-
-        manager.createNotificationChannel(channel);
-        channelCreated = true;
     }
 }
