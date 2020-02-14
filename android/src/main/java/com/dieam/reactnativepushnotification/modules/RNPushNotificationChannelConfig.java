@@ -3,9 +3,9 @@ package com.dieam.reactnativepushnotification.modules;
 public enum RNPushNotificationChannelConfig {
 
     INVITE("rn-push-notification-channel-invite", "Подходящие заказы", "", ""),
-    CHATS("rn-push-notification-channel-chats", "Новые сообщения", "", "quite-impressed.mp3"),
+    CHATS("rn-push-notification-channel-chats", "Новые сообщения", "", ""),
     TRANSACTIONS("rn-push-notification-channel-transactional", "Важное", "Пуш-уведомления о заказах, где вас выбрал клиент, отчётности", ""),
-    OTHER("rn-push-notification-channel-other", "Другое", "Прочте пуш-уведомления", "");
+    OTHER("rn-push-notification-channel-other", "Другое", "Прочие пуш-уведомления", "");
 
     private final String id;
     private final String channelName;
@@ -29,5 +29,9 @@ public enum RNPushNotificationChannelConfig {
 
     public String getChannelDescription() {
         return channelDescription;
+    }
+
+    public String getChannelSound() {
+        return channelSound;
     }
 }

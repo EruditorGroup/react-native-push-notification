@@ -133,8 +133,7 @@ class RNPushNotificationConfig {
                     .setUsage(AudioAttributes.USAGE_ALARM)
                     .build();
 
-            Uri sound = Uri.parse("android.resource://"
-                    + context.getPackageName() + "/" + settings.getChannelSound(config));
+            Uri sound = Uri.parse(settings.getChannelSound(config));
 //            RingtoneManager.getRingtone(context, sound).play();
 
             channel.setSound(sound, attributes); // This is IMPORTANT
