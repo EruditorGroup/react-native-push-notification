@@ -174,6 +174,9 @@ public class RNPushNotificationHelper {
                 case "chats_push":
                     channelConfig = RNPushNotificationChannelConfig.CHATS;
                     break;
+                case "transactional_push":
+                    channelConfig = RNPushNotificationChannelConfig.TRANSACTIONS;
+                    break;
                 default:
                     channelConfig = RNPushNotificationChannelConfig.OTHER;
             }
@@ -281,11 +284,11 @@ public class RNPushNotificationHelper {
                 }
                 notification.setContentText(message);
             }
-            Uri sound = Uri.parse("android.resource://"
-                    + context.getPackageName() + "/" + channelConfig.getChannelSound());
-//            RingtoneManager.getRingtone(context, sound).play();
 
-            notification.setSound(sound, AudioManager.STREAM_NOTIFICATION);
+            RNPushNotificationSettings settings = new RNPushNotificationSettings(context);
+            Uri sound = Uri.parse(settings.getChannelSound(channelConfig));
+            RingtoneManager.getRingtone(context, sound).play();
+            notification.setSound(sound);
 
             String largeIcon = bundle.getString("largeIcon");
 
