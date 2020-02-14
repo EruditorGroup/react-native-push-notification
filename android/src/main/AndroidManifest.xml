@@ -1,4 +1,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.dieam.reactnativepushnotification">
 
+    <application>
+        <service android:name=".modules.RNPushNotificationActionService" />
+    </application>
 </manifest>

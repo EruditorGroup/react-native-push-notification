@@ -10,7 +10,7 @@ class RNPushNotificationActionService: Service() {
 
     override fun onStartCommand(intent: Intent, flags: Int, startId: Int): Int {
         ReactNativePushNotificationPackage.mPushNotificationActionHandler.handleActionPress(intent) {
-            //            stopSelf()
+            stopSelf()
         }
         return START_NOT_STICKY
     }
@@ -22,7 +22,8 @@ class RNPushNotificationActionService: Service() {
     override fun onDestroy() {
         super.onDestroy()
 
-//        RNPushNotificationHelper(application).cancelAllScheduledNotifications()
+        stopForeground(true)
+        RNPushNotificationHelper(application).cancelAllScheduledNotifications()
     }
 
     inner class RNPushNotificationActionServiceBinder : Binder() {
