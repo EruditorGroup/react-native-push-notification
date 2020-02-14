@@ -9,12 +9,20 @@ import com.dieam.reactnativepushnotification.ReactNativePushNotificationPackage
 class RNPushNotificationActionService: Service() {
 
     override fun onStartCommand(intent: Intent, flags: Int, startId: Int): Int {
-        ReactNativePushNotificationPackage.mPushNotificationActionHandler.handleActionPress(intent)
+        ReactNativePushNotificationPackage.mPushNotificationActionHandler.handleActionPress(intent) {
+            //            stopSelf()
+        }
         return START_NOT_STICKY
     }
 
     override fun onBind(intent: Intent?): IBinder? {
         return RNPushNotificationActionServiceBinder()
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+
+//        RNPushNotificationHelper(application).cancelAllScheduledNotifications()
     }
 
     inner class RNPushNotificationActionServiceBinder : Binder() {
