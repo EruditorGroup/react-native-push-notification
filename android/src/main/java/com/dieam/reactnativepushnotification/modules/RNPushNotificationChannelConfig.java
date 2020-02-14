@@ -1,0 +1,38 @@
+package com.dieam.reactnativepushnotification.modules;
+
+public enum RNPushNotificationChannelConfig {
+
+    INVITE("rn-push-notification-channel-invite", "Подходящие заказы", "", ""),
+    CHATS("rn-push-notification-channel-chats", "Новые сообщения", "", "quite-impressed.mp3"),
+    TRANSACTIONS("rn-push-notification-channel-transactional", "Важное", "Пуш-уведомления о заказах, где вас выбрал клиент, отчётности", ""),
+    OTHER("rn-push-notification-channel-other", "Другое", "Прочте пуш-уведомления", "");
+
+    private final String id;
+    private final String channelName;
+    private final String channelDescription;
+    private final String channelSound;
+
+    RNPushNotificationChannelConfig(String id, String channelName, String channelDescription, String channelSound) {
+        this.id = id;
+        this.channelName = channelName;
+        this.channelDescription = channelDescription;
+        this.channelSound = channelSound;
+    }
+
+    protected String getId() {
+        return id;
+    }
+
+    protected String getChannelName() {
+        return channelName;
+    }
+
+    protected String getChannelDescription() {
+        return channelDescription;
+    }
+
+    protected String getChannelSound() {
+
+        return "android.resource://com.dieam.reactnativepushnotification/" + channelSound;
+    }
+}
