@@ -14,6 +14,7 @@ import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
+import android.media.AudioManager;
 import android.media.RingtoneManager;
 import android.net.ParseException;
 import android.net.Uri;
@@ -280,6 +281,11 @@ public class RNPushNotificationHelper {
                 }
                 notification.setContentText(message);
             }
+            Uri sound = Uri.parse("android.resource://"
+                    + context.getPackageName() + "/" + channelConfig.getChannelSound());
+//            RingtoneManager.getRingtone(context, sound).play();
+
+            notification.setSound(sound, AudioManager.STREAM_NOTIFICATION);
 
             String largeIcon = bundle.getString("largeIcon");
 
@@ -332,28 +338,28 @@ public class RNPushNotificationHelper {
             bundle.putBoolean("userInteraction", true);
             intent.putExtra("notification", bundle);
 
-            if (!bundle.containsKey("playSound") || bundle.getBoolean("playSound")) {
-                Uri soundUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
-                String soundName = bundle.getString("soundName");
-                if (soundName != null) {
-                    if (!"default".equalsIgnoreCase(soundName)) {
-
-                        // sound name can be full filename, or just the resource name.// So the strings 'my_sound.mp3' AND 'my_sound' are accepted
-                        // The reason is to make the iOS and android javascript interfaces compatible
-
-                        int resId;
-                        if (context.getResources().getIdentifier(soundName, "raw", context.getPackageName()) != 0) {
-                            resId = context.getResources().getIdentifier(soundName, "raw", context.getPackageName());
-                        } else {
-                            soundName = soundName.substring(0, soundName.lastIndexOf('.'));
-                            resId = context.getResources().getIdentifier(soundName, "raw", context.getPackageName());
-                        }
-
-                        soundUri = Uri.parse("android.resource://" + context.getPackageName() + "/" + resId);
-                    }
-                }
-                notification.setSound(soundUri);
-            }
+//            if (!bundle.containsKey("playSound") || bundle.getBoolean("playSound")) {
+//                Uri soundUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
+//                String soundName = bundle.getString("soundName");
+//                if (soundName != null) {
+//                    if (!"default".equalsIgnoreCase(soundName)) {
+//
+//                        // sound name can be full filename, or just the resource name.// So the strings 'my_sound.mp3' AND 'my_sound' are accepted
+//                        // The reason is to make the iOS and android javascript interfaces compatible
+//
+//                        int resId;
+//                        if (context.getResources().getIdentifier(soundName, "raw", context.getPackageName()) != 0) {
+//                            resId = context.getResources().getIdentifier(soundName, "raw", context.getPackageName());
+//                        } else {
+//                            soundName = soundName.substring(0, soundName.lastIndexOf('.'));
+//                            resId = context.getResources().getIdentifier(soundName, "raw", context.getPackageName());
+//                        }
+//
+//                        soundUri = Uri.parse("android.resource://" + context.getPackageName() + "/" + resId);
+//                    }
+//                }
+//                notification.setSound(soundUri);
+//            }
 
             if (bundle.containsKey("ongoing") || bundle.getBoolean("ongoing")) {
                 notification.setOngoing(bundle.getBoolean("ongoing"));
@@ -492,7 +498,6 @@ public class RNPushNotificationHelper {
             } else {
                 notificationManager.notify(notificationID, info);
             }
-
             // Indirectly invoke the 'push displayed' callback by sending a broadcast
             Intent pushDisplayedIntent = new Intent(context.getPackageName() + INTENT_TAG_PUSH_DISPLAYED_CALLBACK);
             pushDisplayedIntent.putExtras(bundle);

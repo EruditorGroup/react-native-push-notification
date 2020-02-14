@@ -6,6 +6,9 @@ import android.app.NotificationManager;
 import android.content.Context;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
+import android.media.AudioAttributes;
+import android.media.RingtoneManager;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
@@ -34,6 +37,11 @@ class RNPushNotificationConfig {
         }
         try {
             final NotificationManager notificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
+            for (RNPushNotificationChannelConfig config : RNPushNotificationChannelConfig.values()) {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                    notificationManager.deleteNotificationChannel(config.getId());
+                }
+            }
             configChannels(notificationManager);
         } catch (Exception e) {
             e.printStackTrace();
@@ -80,43 +88,56 @@ class RNPushNotificationConfig {
         Bundle bundle = new Bundle();
 
         int importance = NotificationManager.IMPORTANCE_HIGH;
-        final String importanceString = bundle.getString("importance");
+//        final String importanceString = bundle.getString("importance");
 
-        if (importanceString != null) {
-            switch (importanceString.toLowerCase()) {
-                case "default":
-                    importance = NotificationManager.IMPORTANCE_DEFAULT;
-                    break;
-                case "max":
-                    importance = NotificationManager.IMPORTANCE_MAX;
-                    break;
-                case "high":
-                    importance = NotificationManager.IMPORTANCE_HIGH;
-                    break;
-                case "low":
-                    importance = NotificationManager.IMPORTANCE_LOW;
-                    break;
-                case "min":
-                    importance = NotificationManager.IMPORTANCE_MIN;
-                    break;
-                case "none":
-                    importance = NotificationManager.IMPORTANCE_NONE;
-                    break;
-                case "unspecified":
-                    importance = NotificationManager.IMPORTANCE_UNSPECIFIED;
-                    break;
-                default:
-                    importance = NotificationManager.IMPORTANCE_HIGH;
-            }
-        }
+//        if (importanceString != null) {
+//        if (importanceString == null) {
+//            switch (importanceString.toLowerCase()) {
+//                case "default":
+//                    importance = NotificationManager.IMPORTANCE_DEFAULT;
+//                    break;
+//                case "max":
+//                    importance = NotificationManager.IMPORTANCE_MAX;
+//                    break;
+//                case "high":
+//                    importance = NotificationManager.IMPORTANCE_HIGH;
+//                    break;
+//                case "low":
+//                    importance = NotificationManager.IMPORTANCE_LOW;
+//                    break;
+//                case "min":
+//                    importance = NotificationManager.IMPORTANCE_MIN;
+//                    break;
+//                case "none":
+//                    importance = NotificationManager.IMPORTANCE_NONE;
+//                    break;
+//                case "unspecified":
+//                    importance = NotificationManager.IMPORTANCE_UNSPECIFIED;
+//                    break;
+//                default:
+//                    importance = NotificationManager.IMPORTANCE_HIGH;
+//            }
+//        }
+
         final RNPushNotificationChannelConfig[] configs = RNPushNotificationChannelConfig.values();
+        final RNPushNotificationSettings settings = new RNPushNotificationSettings(context);
         for (final RNPushNotificationChannelConfig config : configs) {
-            NotificationChannel channel = new NotificationChannel(config.getId(), config.getChannelName(), importance);
+            NotificationChannel channel = new NotificationChannel(config.getId(), config.getChannelName(), NotificationManager.IMPORTANCE_HIGH);
             final NotificationChannelGroup group = new NotificationChannelGroup(config.getId(), config.getChannelName());
 
             channel.setDescription(config.getChannelDescription());
             channel.enableLights(true);
             channel.enableVibration(true);
+            AudioAttributes attributes = new AudioAttributes.Builder()
+                    .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
+                    .setUsage(AudioAttributes.USAGE_ALARM)
+                    .build();
+
+            Uri sound = Uri.parse("android.resource://"
+                    + context.getPackageName() + "/" + settings.getChannelSound(config));
+//            RingtoneManager.getRingtone(context, sound).play();
+
+            channel.setSound(sound, attributes); // This is IMPORTANT
 
             manager.createNotificationChannelGroup(group);
             manager.createNotificationChannel(channel);
