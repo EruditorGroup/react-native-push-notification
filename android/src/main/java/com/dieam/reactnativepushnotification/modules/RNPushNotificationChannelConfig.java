@@ -19,20 +19,15 @@ public enum RNPushNotificationChannelConfig {
         this.channelSound = channelSound;
     }
 
-    protected String getId() {
+    public String getId() {
         return id;
     }
 
-    protected String getChannelName() {
+    public String getChannelName() {
         return channelName;
     }
 
-    protected String getChannelDescription() {
+    public String getChannelDescription() {
         return channelDescription;
-    }
-
-    protected String getChannelSound() {
-
-        return "android.resource://com.dieam.reactnativepushnotification/" + channelSound;
     }
 }
