@@ -6,5 +6,5 @@ interface RNPushNotificationActionHandler {
 
     fun getSupportedActionTypes(): List<String>
 
-    fun handleActionPress(intent: Intent)
+    fun handleActionPress(intent: Intent, onDone: () -> Unit)
 }
