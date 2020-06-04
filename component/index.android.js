@@ -126,6 +126,10 @@ NotificationsComponent.prototype.clearAllNotifications = function() {
 	RNPushNotification.clearAllNotifications()
 }
 
+NotificationsComponent.prototype.setAndroidNotificationsEnabled = function(enabled: boolean) {
+	RNPushNotification.setNotificationsEnabled(enabled)
+}
+
 module.exports = {
 	state: false,
 	component: new NotificationsComponent()
