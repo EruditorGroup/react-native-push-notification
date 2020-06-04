@@ -128,6 +128,10 @@ public class RNPushNotificationListenerService extends FirebaseMessagingService 
             jsDelivery.notifyRemoteFetch(bundle);
         }
 
+        if (!RNPushNotificationGlobalConfiguration.getInstance().areNotificationsEnabled()) {
+            return;
+        }
+
         Log.v(LOG_TAG, "sendNotification: " + bundle);
 
         Application applicationContext = (Application) context.getApplicationContext();
