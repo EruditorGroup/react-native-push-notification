@@ -14,6 +14,7 @@ import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import com.dieam.reactnativepushnotification.helpers.ApplicationBadgeHelper;
 import com.dieam.reactnativepushnotification.helpers.RNPushNotificationDisplayedCallback;
+import com.dieam.reactnativepushnotification.helpers.RNSilentPushNotificationReceivedCallback;
 import com.facebook.react.bridge.ActivityEventListener;
 import com.facebook.react.bridge.Arguments;
 import com.facebook.react.bridge.Promise;
@@ -34,14 +35,17 @@ public class RNPushNotification extends ReactContextBaseJavaModule implements Ac
     public static final String LOG_TAG = "RNPushNotification";// all logging should use this tag
 
     static final String INTENT_TAG_PUSH_DISPLAYED_CALLBACK = ".RNPushNotificationListener";
+    static final String INTENT_TAG_SILENT_PUSH_RECEIVED_CALLBACK = ".RNSilentPushNotificationListener";
 
     private RNPushNotificationHelper mRNPushNotificationHelper;
     private final Random mRandomNumberGenerator = new Random(System.currentTimeMillis());
     private RNPushNotificationJsDelivery mJsDelivery;
     private RNPushNotificationDisplayedCallback mRNPushNotificationDisplayedCallback;
+    private RNSilentPushNotificationReceivedCallback mRNSilentPushNotificationReceivedCallback;
 
     public RNPushNotification(ReactApplicationContext reactContext,
-                              RNPushNotificationDisplayedCallback mRNPushNotificationDisplayedCallback) {
+                              RNPushNotificationDisplayedCallback rnPushNotificationDisplayedCallback,
+                              RNSilentPushNotificationReceivedCallback rnSilentPushNotificationReceivedCallback) {
         super(reactContext);
 
         reactContext.addActivityEventListener(this);
@@ -53,8 +57,8 @@ public class RNPushNotification extends ReactContextBaseJavaModule implements Ac
         // This is used to delivery callbacks to JS
         mJsDelivery = new RNPushNotificationJsDelivery(reactContext);
 
-        this.mRNPushNotificationDisplayedCallback =
-                mRNPushNotificationDisplayedCallback;
+        mRNPushNotificationDisplayedCallback = rnPushNotificationDisplayedCallback;
+        mRNSilentPushNotificationReceivedCallback = rnSilentPushNotificationReceivedCallback;
 
         registerNotificationBroadcastListeners();
     }
@@ -94,6 +98,7 @@ public class RNPushNotification extends ReactContextBaseJavaModule implements Ac
         registerNotificationRegistrationListener();
         registerNotificationRegistrationErrorListener();
         registerNotificationDisplayedListener();
+        registerSilentPushReceivedListener();
     }
 
     private void registerNotificationRegistrationListener() {
@@ -135,6 +140,21 @@ public class RNPushNotification extends ReactContextBaseJavaModule implements Ac
                     @Override
                     public void onReceive(Context context, Intent intent) {
                         mRNPushNotificationDisplayedCallback.onPushNotificationDisplayed(context, intent);
+                    }
+                }, listenerIntentFilter);
+    }
+
+    private void registerSilentPushReceivedListener() {
+        IntentFilter listenerIntentFilter =
+                new IntentFilter(getReactApplicationContext()
+                        .getPackageName() + INTENT_TAG_SILENT_PUSH_RECEIVED_CALLBACK);
+
+        LocalBroadcastManager
+                .getInstance(getReactApplicationContext())
+                .registerReceiver(new BroadcastReceiver() {
+                    @Override
+                    public void onReceive(Context context, Intent intent) {
+                        mRNSilentPushNotificationReceivedCallback.onSilentPushReceived(context, intent);
                     }
                 }, listenerIntentFilter);
     }
