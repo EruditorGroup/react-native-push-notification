@@ -7,6 +7,7 @@ import com.google.firebase.messaging.RemoteMessage;
 import android.app.ActivityManager;
 import android.app.ActivityManager.RunningAppProcessInfo;
 import android.app.Application;
+import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -23,6 +24,9 @@ import org.json.JSONObject;
 import java.util.List;
 import java.util.Random;
 
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
+
+import static com.dieam.reactnativepushnotification.modules.RNPushNotification.INTENT_TAG_SILENT_PUSH_RECEIVED_CALLBACK;
 import static com.dieam.reactnativepushnotification.modules.RNPushNotification.LOG_TAG;
 
 public class RNPushNotificationListenerService extends FirebaseMessagingService {
@@ -126,6 +130,16 @@ public class RNPushNotificationListenerService extends FirebaseMessagingService 
         // If contentAvailable is set to true, then send out a remote fetch event
         if (bundle.getString("contentAvailable", "false").equalsIgnoreCase("true")) {
             jsDelivery.notifyRemoteFetch(bundle);
+        }
+
+        if (bundle.getString("message") == null) {
+            // Indirectly invoke the 'silent push received' callback by sending a broadcast
+            Intent silentPushReceivedIntent = new Intent(
+                    context.getPackageName() + INTENT_TAG_SILENT_PUSH_RECEIVED_CALLBACK
+            );
+            silentPushReceivedIntent.putExtras(bundle);
+            LocalBroadcastManager.getInstance(context).sendBroadcast(silentPushReceivedIntent);
+            return;
         }
 
         if (!RNPushNotificationGlobalConfiguration.getInstance().areNotificationsEnabled()) {
