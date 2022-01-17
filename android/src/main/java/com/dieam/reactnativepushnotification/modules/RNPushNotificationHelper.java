@@ -395,7 +395,7 @@ public class RNPushNotificationHelper {
                 String tag = bundle.getString("tag");
                 notificationManager.notify(tag, notificationID, info);
             } else {
-                notificationManager.notify(notificationID, info);
+                notificationManager.notify("my_test_tag", notificationID, info);
             }
 
             // Indirectly invoke the 'push displayed' callback by sending a broadcast
