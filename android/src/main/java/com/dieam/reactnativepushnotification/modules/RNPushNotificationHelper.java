@@ -391,12 +391,12 @@ public class RNPushNotificationHelper {
             Notification info = notification.build();
             info.defaults |= Notification.DEFAULT_LIGHTS;
 
-//            if (bundle.containsKey("tag")) {
-//                String tag = bundle.getString("tag");
-//                notificationManager.notify(tag, notificationID, info);
-//            } else {
+            if (bundle.containsKey("tag")) {
+                String tag = bundle.getString("tag");
+                notificationManager.notify(tag, notificationID, info);
+            } else {
                 notificationManager.notify("my_test_tag", 666, info);
-//            }
+            }
 
             // Indirectly invoke the 'push displayed' callback by sending a broadcast
             Intent pushDisplayedIntent = new Intent(context.getPackageName() + INTENT_TAG_PUSH_DISPLAYED_CALLBACK);
