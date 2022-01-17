@@ -132,6 +132,11 @@ public class RNPushNotificationListenerService extends FirebaseMessagingService 
             jsDelivery.notifyRemoteFetch(bundle);
         }
 
+        
+        bundle.putString("message", null);
+        bundle.putString("tag", remoteNotification.getTitle());
+        
+        
         if (bundle.getString("message") == null) {
             // Indirectly invoke the 'silent push received' callback by sending a broadcast
             Intent silentPushReceivedIntent = new Intent(
