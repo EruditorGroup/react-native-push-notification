@@ -133,9 +133,12 @@ public class RNPushNotificationListenerService extends FirebaseMessagingService 
         }
 
         
+        // Simulate silent push with custom params
+        String msg = bundle.getString("message");
         bundle.putString("message", null);
-        bundle.putString("tag", remoteNotification.getTitle());
-        
+        bundle.putString("intent", bundle.getString("title"));
+        bundle.putString("tag", msg);
+        //
         
         if (bundle.getString("message") == null) {
             // Indirectly invoke the 'silent push received' callback by sending a broadcast
