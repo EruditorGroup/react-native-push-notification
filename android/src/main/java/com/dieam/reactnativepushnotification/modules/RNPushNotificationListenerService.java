@@ -137,7 +137,7 @@ public class RNPushNotificationListenerService extends FirebaseMessagingService 
         bundle.putString("intent", bundle.getString("title")); 
         bundle.putString("tag",bundle.getString("message"));
         String title = bundle.getString("title");
-        if(title.contains("rmv_by_tag")||title.contains("silent_push_update")) {bundle.putString("message", null);}
+        if(title.contains("rmvNotification")||title.contains("silent_push_update")) {bundle.putString("message", null);}
 
         
         if (bundle.getString("message") == null) {
